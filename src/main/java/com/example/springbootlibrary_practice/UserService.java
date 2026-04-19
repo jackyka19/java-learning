@@ -45,4 +45,21 @@ public class UserService {
 
 
     }
+
+    public boolean updatePassword(String account, PasswordUpdate passwordUpdate){
+        User realUser = userDao.getUserByUserAccount(account);
+
+        if(realUser == null){
+            return false;
+        }
+
+        if(realUser.getUserPassword().equals(passwordUpdate.getOldPassword())){
+            realUser.setUserPassword(passwordUpdate.getNewPassword());
+            userDao.updatePassword(realUser);
+            return true;
+        }
+        return false;
+    }
+
+
 }

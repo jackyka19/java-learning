@@ -1,6 +1,7 @@
 package com.example.springbootlibrary_practice;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -68,6 +69,22 @@ public class UserDao {
         Integer userId = keyHolder.getKey().intValue();
 
         return userId;
+    }
+
+
+    public void updatePassword(User user) {
+        // 使用 Day 68 教的 BeanPropertySqlParameterSource，它會自動對應變數名稱
+        String sql = "UPDATE user SET user_password = :userPassword WHERE user_account = :userAccount";
+
+        Map<String, String> map = new HashMap();
+//        map.put("user_password", user.getUserPassword());
+//        map.put("user_account", user.getUserAccount());
+//
+//        namedParameterJdbcTemplate.update(sql, map);
+
+        BeanPropertySqlParameterSource param = new BeanPropertySqlParameterSource(user);
+
+        namedParameterJdbcTemplate.update(sql, param);
     }
 
 

@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
@@ -37,27 +35,28 @@ public class UserController {
         }else{
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login Failed: Wrong Account or Password");
         }
-//            @PostMapping("/user/login")
-//public ResponseEntity<?> login(@RequestBody User userRequest) {
-//    // 1. 先進行原本的帳號密碼驗證
-//    User userInfo = userService.login(userRequest);
-//
-//    if (userInfo != null) {
-//        // 2. 驗證成功，呼叫 JwtUtil 產生 Token
-//        String token = JwtUtil.sign(userInfo);
-//
-//        // 3. 回傳 200 OK，並將 Token 放入 Header
-//        return ResponseEntity.status(HttpStatus.OK)
-//                .header("Authorization", "Bearer " + token)
-//                // 讓前端（如 Postman 或網頁）能讀取到 Authorization 這個 Header
-//                .header("Access-Control-Expose-Headers", "Authorization")
-//                .body(userInfo);
-//    } else {
-//        // 4. 登入失敗
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login Failed: Wrong Account or Password.");
-//    }
-//}
+    }
 
-//        return ResponseEntity.status(HttpStatus.OK).body(userInfo);
+    @PutMapping("/user/password")
+    public ResponseEntity<?> updatePassword(@RequestBody PasswordUpdate passwordUpdate,
+                                            @RequestHeader("Authorization") String authHeader) {
+        // 1. 拿掉 "Bearer " 字樣
+        String token = authHeader.substring(7);
+
+        // 2. 驗證 Token
+        try {
+            JwtUtil.verify(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("無效的 Token");
+        }
+
+        // 3. 取得 Token 裡的帳號
+        String account = JwtUtil.getUserAccountFromToken(token);
+
+        // 4. 呼叫 Service 去處理比對與更新邏輯
+        boolean success = userService.updatePassword(account, passwordUpdate);
+
+        if(success) return ResponseEntity.ok("密碼更新成功");
+        else return ResponseEntity.status(400).body("舊密碼錯誤");
     }
 }
